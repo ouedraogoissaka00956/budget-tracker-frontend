@@ -6,19 +6,7 @@ import Loader from '../components/common/Loader';
 import Alert from '../components/common/Alert';
 import { useTransactions } from '../context/TransactionContext';
 import { FileText, Download, Calendar, TrendingUp, TrendingDown, PieChart } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import {BarChart,Bar,PieChart as RechartsPie, Pie,Cell,XAxis,YAxis,CartesianGrid,Tooltip,Legend, ResponsiveContainer,} from 'recharts';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 

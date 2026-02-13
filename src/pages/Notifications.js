@@ -4,15 +4,7 @@ import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
 import Alert from '../components/common/Alert';
 import { useNotifications } from '../context/NotificationContext';
-import { 
-  Bell, 
-  Check, 
-  Trash2, 
-  AlertCircle, 
-  Info, 
-  TrendingDown, 
-  Calendar 
-} from 'lucide-react';
+import { Bell, Check, Trash2, AlertCircle, Info, TrendingDown, Calendar } from 'lucide-react';
 
 const Notifications = () => {
   const { 

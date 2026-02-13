@@ -5,7 +5,7 @@ import Select from '../components/common/Select';
 import Button from '../components/common/Button';
 import Alert from '../components/common/Alert';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, DollarSign, Globe, Save, Key, Camera, Trash2, Upload } from 'lucide-react';
+import { User, Mail, DollarSign, Globe, Camera, Trash2, Save /*, Upload*/ } from 'lucide-react';
 
 const Profile = () => {
   const { user, updateProfile, uploadProfilePicture, deleteProfilePicture } = useAuth();

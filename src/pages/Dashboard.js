@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/common/Layout';
 import StatCard from '../components/common/StatCard';
 import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
 import { useTransactions } from '../context/TransactionContext';
-import { useAuth } from '../context/AuthContext';
 import { useAccounts } from '../context/AccountContext';
+import { useAuth } from '../context/AuthContext';
 import { 
   Hand, 
   Wallet, 
@@ -17,8 +17,6 @@ import {
   ArrowRight 
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -33,7 +31,7 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
-  const { transactions, loading: transactionsLoading, fetchTransactions, fetchStatistics } = useTransactions();
+  const { loading: transactionsLoading, fetchTransactions, fetchStatistics } = useTransactions();
   const { accounts, fetchAccounts } = useAccounts();
   const { user } = useAuth();
 
@@ -51,7 +49,7 @@ const Dashboard = () => {
   });
 
   // Calculer les dates en fonction de la période sélectionnée
-  const getDateRange = () => {
+  const getDateRange = useCallback(() => {
     const now = new Date();
     let startDate, endDate;
 
@@ -101,7 +99,7 @@ const Dashboard = () => {
     }
 
     return { startDate, endDate };
-  };
+  }, [period, customDates]);
 
   // Charger les données
   useEffect(() => {
@@ -128,7 +126,7 @@ const Dashboard = () => {
     };
 
     loadData();
-  }, [period, customDates, fetchTransactions, fetchStatistics]);
+  }, [period, customDates, fetchTransactions, fetchStatistics, getDateRange]);
 
   // Calculer le solde total des comptes
   const totalBalance = accounts?.reduce((sum, acc) => sum + acc.balance, 0) || 0;
@@ -199,116 +197,116 @@ const Dashboard = () => {
         </div>
 
         {/* Sélecteur de période */}
-<div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-    Période de visualisation
-  </h3>
-  
-  <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
-    <button
-      onClick={() => setPeriod('today')}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-        period === 'today'
-          ? 'bg-primary-600 text-white shadow-lg'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-      }`}
-    >
-      Aujourd'hui
-    </button>
-    <button
-      onClick={() => setPeriod('week')}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-        period === 'week'
-          ? 'bg-primary-600 text-white shadow-lg'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-      }`}
-    >
-      Cette semaine
-    </button>
-    <button
-      onClick={() => setPeriod('month')}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-        period === 'month'
-          ? 'bg-primary-600 text-white shadow-lg'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-      }`}
-    >
-      Ce mois
-    </button>
-    <button
-      onClick={() => setPeriod('quarter')}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-        period === 'quarter'
-          ? 'bg-primary-600 text-white shadow-lg'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-      }`}
-    >
-      Ce trimestre
-    </button>
-    <button
-      onClick={() => setPeriod('year')}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-        period === 'year'
-          ? 'bg-primary-600 text-white shadow-lg'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-      }`}
-    >
-      Cette année
-    </button>
-    <button
-      onClick={() => setPeriod('all')}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-        period === 'all'
-          ? 'bg-primary-600 text-white shadow-lg'
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-      }`}
-    >
-      Tout
-    </button>
-  </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Période de visualisation
+          </h3>
+          
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+            <button
+              onClick={() => setPeriod('today')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                period === 'today'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Aujourd'hui
+            </button>
+            <button
+              onClick={() => setPeriod('week')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                period === 'week'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Cette semaine
+            </button>
+            <button
+              onClick={() => setPeriod('month')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                period === 'month'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Ce mois
+            </button>
+            <button
+              onClick={() => setPeriod('quarter')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                period === 'quarter'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Ce trimestre
+            </button>
+            <button
+              onClick={() => setPeriod('year')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                period === 'year'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Cette année
+            </button>
+            <button
+              onClick={() => setPeriod('all')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                period === 'all'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Tout
+            </button>
+          </div>
 
-  {/* Période personnalisée */}
-  <div className="border-t dark:border-gray-600 pt-4">
-    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
-      Période personnalisée
-    </h4>
-    <div className="flex flex-col md:flex-row gap-3">
-      <div className="flex-1">
-        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-          Date de début
-        </label>
-        <input
-          type="date"
-          name="startDate"
-          value={customDates.startDate}
-          onChange={handleCustomDateChange}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-        />
-      </div>
-      <div className="flex-1">
-        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-          Date de fin
-        </label>
-        <input
-          type="date"
-          name="endDate"
-          value={customDates.endDate}
-          onChange={handleCustomDateChange}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-        />
-      </div>
-      <div className="flex items-end">
-        <Button
-          onClick={applyCustomDates}
-          variant="primary"
-          disabled={!customDates.startDate || !customDates.endDate}
-        >
-          Appliquer
-        </Button>
-      </div>
-    </div>
-  </div>
-</div>
+          {/* Période personnalisée */}
+          <div className="border-t dark:border-gray-600 pt-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
+              Période personnalisée
+            </h4>
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                  Date de début
+                </label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={customDates.startDate}
+                  onChange={handleCustomDateChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                  Date de fin
+                </label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={customDates.endDate}
+                  onChange={handleCustomDateChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  onClick={applyCustomDates}
+                  variant="primary"
+                  disabled={!customDates.startDate || !customDates.endDate}
+                >
+                  Appliquer
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Cartes statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -339,44 +337,44 @@ const Dashboard = () => {
         </div>
 
         {/* Graphiques */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Graphique en barres par catégorie */}
-        {categoryData.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Revenus vs Dépenses par catégorie
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={categoryData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#9CA3AF"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis 
-                  stroke="#9CA3AF"
-                  style={{ fontSize: '12px' }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'rgba(31, 41, 55, 0.95)',
-                    border: '1px solid #4B5563',
-                    borderRadius: '8px',
-                    color: '#F3F4F6'
-                  }}
-                />
-                <Legend 
-                  wrapperStyle={{
-                    color: '#9CA3AF'
-                  }}
-                />
-                <Bar dataKey="revenus" fill="#10B981" name="Revenus" />
-                <Bar dataKey="dépenses" fill="#EF4444" name="Dépenses" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Graphique en barres par catégorie */}
+          {categoryData.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Revenus vs Dépenses par catégorie
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={categoryData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#9CA3AF"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis 
+                    stroke="#9CA3AF"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                      border: '1px solid #4B5563',
+                      borderRadius: '8px',
+                      color: '#F3F4F6'
+                    }}
+                  />
+                  <Legend 
+                    wrapperStyle={{
+                      color: '#9CA3AF'
+                    }}
+                  />
+                  <Bar dataKey="revenus" fill="#10B981" name="Revenus" />
+                  <Bar dataKey="dépenses" fill="#EF4444" name="Dépenses" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
           {/* Graphique circulaire des dépenses */}
           {pieData.length > 0 && (
@@ -415,75 +413,75 @@ const Dashboard = () => {
         </div>
 
         {/* Conseils */}
-{statistics.totalExpense > statistics.totalIncome && (
-  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-6">
-    <div className="flex items-start space-x-3">
-      <Lightbulb size={24} className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-1" />
-      <div>
-        <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
-           Conseil financier
-        </h3>
-        <p className="text-yellow-700 dark:text-yellow-200">
-          Vos dépenses dépassent vos revenus ce mois-ci. Pensez à réduire les dépenses non essentielles et à établir un budget strict.
-        </p>
-      </div>
-    </div>
-  </div>
-)}
+        {statistics.totalExpense > statistics.totalIncome && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-6">
+            <div className="flex items-start space-x-3">
+              <Lightbulb size={24} className="text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+                  💡 Conseil financier
+                </h3>
+                <p className="text-yellow-700 dark:text-yellow-200">
+                  Vos dépenses dépassent vos revenus ce mois-ci. Pensez à réduire les dépenses non essentielles et à établir un budget strict.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Liens rapides */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-  <Link
-    to="/transactions"
-    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-6 hover:shadow-lg transition-all group"
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Voir toutes les transactions
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Gérez vos transactions
-        </p>
-      </div>
-      <ArrowRight className="text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform" />
-    </div>
-  </Link>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link
+            to="/transactions"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-6 hover:shadow-lg transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Voir toutes les transactions
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Gérez vos transactions
+                </p>
+              </div>
+              <ArrowRight className="text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
 
-  <Link
-    to="/reports"
-    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-6 hover:shadow-lg transition-all group"
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Rapports détaillés
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Analyses approfondies
-        </p>
-      </div>
-      <ArrowRight className="text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform" />
-    </div>
-  </Link>
+          <Link
+            to="/reports"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-6 hover:shadow-lg transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Rapports détaillés
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Analyses approfondies
+                </p>
+              </div>
+              <ArrowRight className="text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
 
-  <Link
-    to="/goals"
-    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-6 hover:shadow-lg transition-all group"
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Objectifs d'épargne
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Suivez vos objectifs
-        </p>
-      </div>
-      <ArrowRight className="text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform" />
-    </div>
-  </Link>
-</div>
+          <Link
+            to="/goals"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md p-6 hover:shadow-lg transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Objectifs d'épargne
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Suivez vos objectifs
+                </p>
+              </div>
+              <ArrowRight className="text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+        </div>
       </div>
     </Layout>
   );

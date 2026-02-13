@@ -15,9 +15,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  TrendingUp,
+ // TrendingUp,
   DollarSign,
-  Target,
+  // Target,
   BarChart3,
   Info
 } from 'lucide-react';

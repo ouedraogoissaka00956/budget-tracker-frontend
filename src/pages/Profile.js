@@ -1,19 +1,20 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/common/Layout';
 import Input from '../components/common/Input';
 import Select from '../components/common/Select';
 import Button from '../components/common/Button';
 import Alert from '../components/common/Alert';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, DollarSign, Globe, Camera, Trash2, Save /*, Upload*/ } from 'lucide-react';
+import { User, Mail, DollarSign, Globe, Camera, Trash2, Save } from 'lucide-react';
 
 const Profile = () => {
   const { user, updateProfile, uploadProfilePicture, deleteProfilePicture } = useAuth();
+
   const [formData, setFormData] = useState({
-    username: user?.username || '',
-    email: user?.email || '',
-    monthlyBudget: user?.monthlyBudget || '',
-    currency: user?.currency || 'XOF',
+    username: '',
+    email: '',
+    monthlyBudget: '',
+    currency: 'XOF',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -24,30 +25,39 @@ const Profile = () => {
 
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
-  
-  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || '',
+        email: user.email || '',
+        monthlyBudget: user.monthlyBudget || '',
+        currency: user.currency || 'XOF',
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
   const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
     setPasswordData({
       ...passwordData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setSuccessMessage('');
 
     try {
       await updateProfile(formData);
@@ -55,14 +65,13 @@ const Profile = () => {
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Erreur lors de la mise à jour');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
@@ -74,13 +83,8 @@ const Profile = () => {
       return;
     }
 
-    setLoading(true);
-
     try {
-      await updateProfile({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-      });
+      await updateProfile(passwordData);
       setSuccessMessage('Mot de passe mis à jour avec succès !');
       setPasswordData({
         currentPassword: '',
@@ -89,197 +93,145 @@ const Profile = () => {
       });
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la mise à jour');
-    } finally {
-      setLoading(false);
+      setError(err.response?.data?.message || 'Erreur lors de la mise à jour du mot de passe');
     }
   };
 
-  const handleFileChange = async (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validation du fichier
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!validTypes.includes(file.type)) {
-      setError('Seuls les fichiers JPEG et PNG sont autorisés');
+    if (!file.type.startsWith('image/')) {
+      setError('Veuillez sélectionner une image');
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      setError('Le fichier ne doit pas dépasser 5MB');
+    if (file.size > 5 * 1024 * 1024) {
+      setError('L\'image ne doit pas dépasser 5MB');
       return;
     }
 
     setUploading(true);
-    setUploadProgress(0);
     setError('');
 
     try {
-      await uploadProfilePicture(file, (progress) => {
-        setUploadProgress(progress);
-      });
+      await uploadProfilePicture(file);
       setSuccessMessage('Photo de profil mise à jour !');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Erreur lors de l\'upload');
     } finally {
       setUploading(false);
-      setUploadProgress(0);
     }
   };
 
   const handleDeletePhoto = async () => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer votre photo de profil ?')) {
-      return;
-    }
+    if (!window.confirm('Supprimer la photo de profil ?')) return;
 
-    setError('');
     try {
       await deleteProfilePicture();
-      setSuccessMessage('Photo de profil supprimée !');
+      setSuccessMessage('Photo supprimée');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la suppression');
+      setError('Erreur lors de la suppression');
     }
   };
 
   const currencyOptions = [
     { value: 'XOF', label: 'XOF - Franc CFA' },
     { value: 'EUR', label: 'EUR - Euro' },
-    { value: 'USD', label: 'USD - Dollar américain' },
-    { value: 'GBP', label: 'GBP - Livre sterling' },
+    { value: 'USD', label: 'USD - Dollar' },
+    { value: 'GBP', label: 'GBP - Livre Sterling' },
   ];
 
   return (
     <Layout>
       <div className="space-y-6">
-        {/* En-tête */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
             <User size={32} className="text-primary-600" />
-            <span>Mon Profil</span>
+            <span>Mon profil</span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Gérez vos informations personnelles et préférences
           </p>
         </div>
 
-        {/* Messages */}
-        {successMessage && (
-          <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
-        )}
+        {successMessage && <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />}
         {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Carte utilisateur avec photo */}
-          <div className="lg:col-span-1">
-            <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-xl shadow-lg p-8 text-white">
-              <div className="flex flex-col items-center">
-                {/* Photo de profil */}
-                <div className="relative mb-4">
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-white/20 backdrop-blur-sm border-4 border-white/30">
-                    {user?.profilePicture ? (
-                      <img
-                        src={user.profilePicture}
-                        alt={user.username}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <User size={64} className="text-white/60" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Boutons photo */}
-                  <div className="absolute bottom-0 right-0 flex space-x-1">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="p-2 bg-white text-primary-600 rounded-full hover:bg-gray-100 transition-colors shadow-lg"
-                      title="Changer la photo"
-                    >
-                      <Camera size={20} />
-                    </button>
-                    {user?.profilePicture && (
-                      <button
-                        onClick={handleDeletePhoto}
-                        disabled={uploading}
-                        className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
-                        title="Supprimer la photo"
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Barre de progression upload */}
-                {uploading && (
-                  <div className="w-full mb-4">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span>Upload en cours...</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <div className="w-full bg-white/20 rounded-full h-2">
-                      <div
-                        className="bg-white h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      ></div>
-                    </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+            <div className="flex flex-col items-center">
+              <div className="relative group">
+                {user?.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={user.username}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-primary-500"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center border-4 border-primary-500">
+                    <User size={64} className="text-primary-600 dark:text-primary-400" />
                   </div>
                 )}
-
-                <h2 className="text-2xl font-bold mb-1">{user?.username}</h2>
-                <p className="text-primary-100 mb-4">{user?.email}</p>
-                
-                <div className="w-full bg-white/10 backdrop-blur-sm rounded-lg p-4 mt-4">
-                  <p className="text-sm opacity-75 mb-1">Budget mensuel</p>
-                  <p className="text-2xl font-bold">
-                    {user?.monthlyBudget?.toLocaleString() || 0} {user?.currency || 'XOF'}
-                  </p>
-                </div>
+                <label
+                  htmlFor="profile-picture"
+                  className="absolute bottom-0 right-0 bg-primary-600 text-white p-2 rounded-full cursor-pointer hover:bg-primary-700 transition-colors"
+                >
+                  <Camera size={20} />
+                  <input
+                    id="profile-picture"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
               </div>
-            </div>
+              <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">{user?.username}</h2>
+              <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
 
-            {/* Statistiques */}
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Statistiques du compte
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Membre depuis</span>
+              {user?.profilePicture && (
+                <Button
+                  onClick={handleDeletePhoto}
+                  variant="danger"
+                  size="sm"
+                  icon={Trash2}
+                  className="mt-4"
+                >
+                  Supprimer la photo
+                </Button>
+              )}
+
+              <div className="mt-6 w-full bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Budget mensuel</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {user?.monthlyBudget?.toLocaleString() || 0} {user?.currency}
+                </p>
+              </div>
+
+              <div className="mt-4 w-full space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex justify-between">
+                  <span>Membre depuis</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    {new Date(user?.createdAt).toLocaleDateString('fr-FR')}
+                    {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR') : '-'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Dernière connexion</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    Aujourd'hui
-                  </span>
+                <div className="flex justify-between">
+                  <span>Dernière connexion</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Aujourd'hui</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Formulaires */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Informations personnelles */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center space-x-2">
-                <User size={20} />
-                <span>Informations personnelles</span>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <User size={20} className="mr-2" />
+                Informations
               </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <Input
@@ -293,13 +245,14 @@ const Profile = () => {
                 />
 
                 <Input
-                  label="Email"
+                  label="E-mail"
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   icon={Mail}
                   required
+                  disabled
                 />
 
                 <Input
@@ -314,7 +267,7 @@ const Profile = () => {
                 />
 
                 <Select
-                  label="Devise"
+                  label="Concevoir"
                   name="currency"
                   value={formData.currency}
                   onChange={handleChange}
@@ -322,19 +275,15 @@ const Profile = () => {
                   icon={Globe}
                 />
 
-                <div className="pt-4">
-                  <Button type="submit" variant="primary" disabled={loading} icon={Save} className="w-full">
-                    {loading ? 'Enregistrement...' : 'Enregistrer les modifications'}
-                  </Button>
-                </div>
+                <Button type="submit" variant="primary" icon={Save} className="w-full">
+                  Enregistrer les modifications
+                </Button>
               </form>
             </div>
 
-            {/* Changer le mot de passe */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center space-x-2">
-                <Key size={20} />
-                <span>Changer le mot de passe</span>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Changer le mot de passe
               </h3>
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <Input
@@ -343,7 +292,6 @@ const Profile = () => {
                   name="currentPassword"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
-                  placeholder="••••••••"
                   required
                 />
 
@@ -353,25 +301,23 @@ const Profile = () => {
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
-                  placeholder="••••••••"
                   required
+                  minLength={6}
                 />
 
                 <Input
-                  label="Confirmer le nouveau mot de passe"
+                  label="Confirmer le mot de passe"
                   type="password"
                   name="confirmPassword"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
-                  placeholder="••••••••"
                   required
+                  minLength={6}
                 />
 
-                <div className="pt-4">
-                  <Button type="submit" variant="primary" disabled={loading} icon={Key} className="w-full">
-                    {loading ? 'Modification...' : 'Changer le mot de passe'}
-                  </Button>
-                </div>
+                <Button type="submit" variant="primary" icon={Save} className="w-full">
+                  Mettre à jour le mot de passe
+                </Button>
               </form>
             </div>
           </div>

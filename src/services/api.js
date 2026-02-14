@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api';
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: 'https://budget-tracker-api-8oqm.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -16,7 +16,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log(' API Request:', config.baseURL + config.url); // Log pour debug
+    console.log(' API Request:', config.baseURL + config.url); 
     return config;
   },
   (error) => {
